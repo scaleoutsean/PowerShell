@@ -54,10 +54,12 @@ New-SFVolumeAccessGroup -Name TestGroup -Initiators $IQNs.IQN -VolumeIDs $volume
 
 
 <#
-Use this if an existing volume access group
-Write-Host "Adding Volumes to Volume Access Group" -ForegroundColor Yellow
-$vag = Get-SFVolumeAccessGroup -VolumeAccessGroupName ESX-16
+Use this if an existing volume access group (such as NetApp-HCI)
+Write-Host "Adding Volumes to Volume Access Group..." -ForegroundColor Yellow
+$vag = Get-SFVolumeAccessGroup -VolumeAccessGroupName NetApp-HCI
+$volumes | Add-SFVolumeToVolumeAccessGroup -VolumeAccessGroupID $vag.VolumeAccessGroupID
 $vag | Add-SFVolumeToVolumeAccessGroup -VolumeID $volumes.VolumeID
+Now skip to Rescan HBAs
 #>
 
 # Check Target to hosts
@@ -86,7 +88,7 @@ Get-VMhost | Get-VMhostStorage -RescanAllHba -RescanVMFs
 $vmhost = Get-VMhost | Select -First 1
 foreach($volume in $volumes){
 $canonicalname = "naa." + $volume.ScsiNAADeviceID
-New-Datastore -VMhost $vmhost -Name $volume.VolumeName -Path $canonicalname -Vmfs -FileSystemVersion 5
+New-Datastore -VMhost $vmhost -Name $volume.Name -Path $canonicalname -Vmfs -FileSystemVersion 6
 }
 
 
